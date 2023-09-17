@@ -100,7 +100,7 @@ app.post('/upload_multipart', upload.any(), async (req, res, next) => {
         const uploadStart = await AWS_S3.createMultipartUpload(params).promise();
         console.log("uploadStart", uploadStart.UploadId);
         //upload
-        let uploadPromise = [];
+        let uploadPromise:any[] = [];
         let total_chunks = Math.ceil(file[0].size / CHUNK_SIZE);
         let end;
         let start = 0;
