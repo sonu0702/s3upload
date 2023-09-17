@@ -1,0 +1,65 @@
+1. Upload a large file parallely to S3
+
+/upload_parrallel
+
+API uploads large file to s3 using aws sdk client v3 and aws storage lib.
+SKD allows set parameters such as 
+- queueSize: 4, // default is 4
+- partSize: 5242880,//5mb by default
+which handles the parallel upload of the file to s3 without much coding.
+
+
+2. Upload a large file in parts
+/upload_multipart
+
+This API uploads large files using aws-sdk. 
+upload is done in 3 phases
+1. Inititation phase, in this file upload is intiated and uploadId is obtained
+which will be usefull in the later phases
+2. Upload phase, in this phase the file is divided into chunks lets say chunk 
+of 5mb each. This chunk then can be uploaded to s3 one by one. 
+3. Completion phase, in this phase the s3 obtains the confiration that 
+all the parts are uploaded.
+
+In both cases it is better to initialise S3 with this flag
+- useAccelerateEndpoint:true
+This incurs separate cost but increases the performance.
+
+As the above cases indicate that aws as solutions to upload large file to s3 
+but lacks the optimization which developers can use to upload multiple fils 
+optimally. Solution which would have been suitable is batch upload.
+
+3. Batch upload - HLD
+
+Frontend (FE)
+Steps
+- User uploads multiple files
+- call /init_upload to obtain upload_id
+- call /upload  to upload each file one by one
+- FE should be able to let users use other features
+  in the application, just like Google drive
+- once all the files are sent to Backend
+- Call /complete to mark the process complete
+- FE should break the call only when the user refreshes / closes the tab
+- create a global compnent which shows the upload progress 
+  just like Google Drive
+
+Backend (FE)
+/init_upload
+    - returns {upload_id}
+/upload 
+    {file1.png , upload_id} = req.body;
+    - returns {success}
+/complete
+    {upload_id} = req.body;
+    - returns {
+       uploaded:success  
+    }
+
+Advantages
+- User is not blocked to try out other features
+- Using upload_id files can be deleted which 
+are already in the S3 when process fails
+- BE is not overloaded, since the process is sync.
+- FE is not overloaded since it has to send the data to backend instead
+  of processing all the files in the frontend and uploading to s3
